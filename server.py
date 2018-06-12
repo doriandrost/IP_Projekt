@@ -2,18 +2,13 @@
 import socket
 import time
 import util
+from threading import Thread
+import sys
 
 
 host = "localhost"
-port = 5000
-"""
-try:
-	while True:
-		inSocket, addr = s.accept()
-		inSocket.send(bytes("BLUB","utf-8"))
-finally:
-	inSocket.close()
-"""
+port = 5018
+
 
 
 
@@ -28,37 +23,56 @@ class Server():
 		self.s.bind((host,port))
 		self.inSocket = None
 		self.addr = None
+		self.listeningThread = None
+
+	def startListeningThread(self):
+		self.listeningThread = Thread(target = self.listen)
+		self.listeningThread.daemon = True	#so it stoppes correctly as the server shuts down
+		self.listeningThread.start()
 
 	def listen(self):
 		print("Server: Start listening...")
 		self.s.listen(socket.SOMAXCONN)
 		self.inSocket, self.addr = self.s.accept()
 		print("Server: accepted a connection")
+		self.waitForIncom()
 
 	def send(self,message):
 		print("Server: Sending the message ",message)
 		time.sleep(2)
 		self.inSocket.send(bytes(message,"utf-8"))
 
+
 	def waitForIncom(self):
 		recievedBytes = ""
 		while True:
-			time.sleep(1)
-			print("Server: Waiting for Incom...")
+			#time.sleep(1)
+			#print("Server: Waiting for Incom...")
 			b = self.inSocket.recv(10)
 			recievedBytes += b.decode("utf-8")
 			if(len(b) == 0):
 				break
 		print("Server: Recieved a Message that is: \n",recievedBytes)
 		self.ExtractInfoFromString(recievedBytes)
+		self.startListeningThread()
 
 	def ExtractInfoFromString(self,St):
 		incom = util.StringToDic(St)
-		if(incom["TYPE"] == "0"):#0 heartbeat
-			del incom["TYPE"]	#we don't want to store that information in the dic
-			self.All_Clients.update({incom["ID"]:incom})
-		print("Server: sucesfully registered a new Client")
-
+		if(incom["TYPE"] == "0"):#0 register
+			if(incom["ID"] not in self.All_Clients):
+				del incom["TYPE"]	#we don't want to store that information in the dic
+				incom.update({"Timestamp":time.asctime()})
+				self.All_Clients.update({incom["ID"]:incom})
+				print("Server: sucesfully registered a new Client")
+				self.send("0")
+			else:
+				self.send("1")
+		elif(incom["TYPE"] == "1"): #1 heartbeat
+			self.All_Clients[incom["ID"]].update({"Timestamp":time.asctime()})
+			self.send("0")
+		elif(incom["TYPE"] == "2"): #2 anfrage
+			pass
+			self.send("0")
 
 
 
@@ -74,8 +88,25 @@ class Server():
 	def getAllClients(self):
 		return list(self.All_Clients.keys())
 
+		
+
 Serv = Server()
-Serv.listen()
-Serv.waitForIncom()
-print(Serv.getAllClients())
-print(Serv.All_Clients)
+Serv.startListeningThread()
+
+
+while True:
+	i = input(">")
+	if(i == "allclients"):
+		print (Serv.getAllClients())
+	elif(i in Serv.All_Clients):
+		print(Serv.getInfo(i))
+	elif(i == "quit"):
+		sys.exit()
+
+
+
+
+
+
+
+
