@@ -5,7 +5,7 @@ import sys
 
 
 host = "localhost"
-port = 5009
+port = 5025
 EOT = "EOT"
 
 identifier = sys.argv[1]
@@ -17,6 +17,10 @@ class Client():
 		self.host,self.port = host,port
 	
 	def register(self):
+		"""
+		registers itself to the server.
+		returns a "0" if everything was sucesfull, a "1" otherwise
+		"""
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
 		s.connect((host,port))
 		myInfo = {"TYPE":"0","ID":identifier,"CPU":"SomeCPU","GPU":"SomeGPU","RAM":"1000"}
@@ -37,6 +41,10 @@ class Client():
 		return answer
 
 	def heartbeat(self):
+		"""
+		sends a heartbeat to the server.
+		Returns a "0" if sucesfull, a "1" otherwise
+		"""
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
 		s.connect((host,port))
 		heartbeat = {"TYPE":"1","ID":identifier}
@@ -51,6 +59,11 @@ class Client():
 		return answer
 
 	def ask(self):
+		"""
+		Asks the server if there are packageupdates available.
+		Receives the packages and calls the InstallPackages function.
+		Returns "0" if sucesfull, "1" otherwise.
+		"""
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
 		s.connect((host,port))
 		question = {"ID":identifier,"TYPE":"2"}
@@ -61,8 +74,28 @@ class Client():
 		s.send(bytes(EOT,"utf-8"))
 		answer = s.recv(1).decode("utf-8")
 		print(answer)
+		if(answer == "0"):
+			inp = ""
+			while 1:
+				inp += s.recv(10).decode("utf-8")
+				if(EOT in inp):
+					break
+			d = util.StringToDic(inp[:-len(EOT)])
+			print(d)
+			self.installPackages(d)
 		s.close()
 		return answer
+
+	def installPackages(self,packages):
+		"""	
+		Installs (i.e. creates the files of) the packages coming from the dict packages.
+		"""
+		timestamp = packages["TIMESTAMP"]
+		del packages["TIMESTAMP"]
+		for name in packages:
+			pack = open(name,"w")
+			pack.write(packages[name])
+			pack.close()
 
 client = Client(identifier,host,port)
 while True:
