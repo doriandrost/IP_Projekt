@@ -8,7 +8,7 @@ from zipfile import ZipFile
 
 
 host = "localhost"
-port = 5009
+port = 5025
 EOT = "EOT"
 
 
@@ -84,7 +84,7 @@ class Server():
 			if(len(b) == 0):
 				break
 			if(EOT in recievedBytes):
-				recievedBytes = recievedBytes[:-3]	#cut the EOT
+				recievedBytes = recievedBytes[:-len(EOT)]	#cut the EOT
 				break
 		print("Server: Recieved a Message that is: \n",recievedBytes)
 		self.ExtractInfoFromString(recievedBytes)
@@ -117,29 +117,31 @@ class Server():
 				self.send("1")
 		elif(incom["TYPE"] == "2"): #2 anfrage
 			updates = self.searchForUpdates(incom)
-			if(updates == 1):
-				self.send("1")
-			else:
+			if(len(updates) > 1):
 				self.send("0")
-				for pack in updates:
-					self.send(util.DicToString(pack))
-
+				self.send(updates)
+			else:
+				self.send("1")
 	def readInPackage(self, name):
+		"""
+		reads in the zipfile archive specified through the name.
+		returns a dic of the form {"TIMESTAMP":42,bla:blub, spamm:eggs ...}
+		where the keys are the names of the files and the values their content.
+		"""
 		print("reading in packages...")
-		ret = {}
+		packages_dic = {}
 		package = ZipFile(name,"r")
 		for member in package.namelist():
-			ret.update({member:package.open(member,"r").read()})
-		print(ret)
-			
+			packages_dic.update({member:package.open(member,"r").read().decode("utf-8")})
+		packages_dic.update({"TIMESTAMP":str(time.time())})
+		return util.DicToString(packages_dic)
 
 	def searchForUpdates(self, clientDic):
 		"""
 		searches for whether there are packageupdates available for the client specified in clientDic. 
 		"""
-		self.readInPackage("One_Package.zip")
-		return self.Packages
-
+		pack = self.readInPackage("One_Package.zip")
+		return pack
 
 	def registerClient(self,identifier,client):
 		self.All_Clients.update({identifier:client})
