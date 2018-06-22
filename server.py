@@ -8,7 +8,7 @@ from zipfile import ZipFile
 
 
 host = "localhost"
-port = 5025
+port = 5020
 EOT = "EOT"
 
 
@@ -117,7 +117,7 @@ class Server():
 				self.send("1")
 		elif(incom["TYPE"] == "2"): #2 anfrage
 			updates = self.searchForUpdates(incom)
-			if(len(updates) > 1):
+			if(updates != 1):
 				self.send("0")
 				self.send(updates)
 			else:
@@ -125,7 +125,7 @@ class Server():
 	def readInPackage(self, name):
 		"""
 		reads in the zipfile archive specified through the name.
-		returns a dic of the form {"TIMESTAMP":42,bla:blub, spamm:eggs ...}
+		returns a dic of the form {"NAME":name,"TIMESTAMP":"42",bla:blub, spamm:eggs ...}
 		where the keys are the names of the files and the values their content.
 		"""
 		print("reading in packages...")
@@ -134,6 +134,8 @@ class Server():
 		for member in package.namelist():
 			packages_dic.update({member:package.open(member,"r").read().decode("utf-8")})
 		packages_dic.update({"TIMESTAMP":str(time.time())})
+		packages_dic.update({"NAME":name})
+		packages_dic.update({"CHECKSUM":str(util.Hash(util.DicToString(packages_dic)))})
 		return util.DicToString(packages_dic)
 
 	def searchForUpdates(self, clientDic):
