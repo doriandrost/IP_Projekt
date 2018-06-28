@@ -6,6 +6,7 @@ import platform
 import uuid
 import os
 import re
+import getpass
 
 secure,password = True,"fischkopf"
 
@@ -39,12 +40,12 @@ class Client():
 		infoString = util.DicToString(myInfo)
 		if(secure):
 			infoString = util.encrypt(infoString,password)
-		print("Client: Sending my info: ",infoString)
+		#print("Client: Sending my info: ",infoString)
 		s.send(bytes(infoString,"utf-8"))
-		print("Sending", EOT)
+		#print("Sending", EOT)
 		s.send(bytes(EOT,"utf-8"))
 		answer = s.recv(1).decode("utf-8")
-		print("Server answered with", answer)
+		#print("Server answered with", answer)
 		#if(answer == "1"):
 		#	print("poor :(")
 		#elif(answer == "0"):
@@ -62,17 +63,34 @@ class Client():
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
 		s.connect((host,port))
 		heartbeat = {"TYPE":"1","ID":str(identifier)}
-		print(heartbeat)
+		#print(heartbeat)
 		heartbeatString = util.DicToString(heartbeat)
 		if(secure):
 			heartbeatString = util.encrypt(heartbeatString,password)
-		print("Sending a message that is", heartbeatString)
+		#print("Sending a message that is", heartbeatString)
 		s.send(bytes(heartbeatString,"utf-8"))
-		print("Sending", EOT)
+		#print("Sending", EOT)
 		s.send(bytes(EOT,"utf-8"))
 		answer = s.recv(1).decode("utf-8")
 		s.close()
 
+		return answer
+
+	def suicide(self):
+		"""
+		deregisters the client from the server.
+		recieves an answer "0" if sucesfull, "1" otherwise.
+		"""
+		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
+		s.connect((host,port))
+		query = {"ID":identifier,"TYPE":"3"}
+		queryAsString = util.DicToString(query)
+		if(secure):
+			queryAsString = util.encrypt(queryAsString,password)
+		s.send(bytes(queryAsString,"utf-8"))
+		#print("sending",queryAsString)
+		s.send(bytes(EOT,"utf-8"))
+		answer = s.recv(1).decode("utf-8")
 		return answer
 
 	def ask(self):
@@ -87,12 +105,12 @@ class Client():
 		questionAsString = util.DicToString(question)
 		if(secure):
 			questionAsString = util.encrypt(questionAsString,password)
-		print("sending ",questionAsString)
+		#print("sending ",questionAsString)
 		s.send(bytes(questionAsString,"utf-8"))
-		print("sending ",EOT)
+		#print("sending ",EOT)
 		s.send(bytes(EOT,"utf-8"))
 		answer = s.recv(1).decode("utf-8")
-		print(answer)
+		#print(answer)
 		if(answer == "0"):
 			inp = ""
 			while 1:
@@ -117,7 +135,7 @@ class Client():
 		q = e.search(pack_string)
 		pack_string = pack_string[:q.start()] + pack_string[q.end():]
 		calculated_checksum = util.Hash(pack_string)
-		print("calculated on:",pack_string)
+		#print("calculated on:",pack_string)
 		if(calculated_checksum != checksum):
 			print("Checksums don't match!")
 			print(checksum)
@@ -137,6 +155,10 @@ class Client():
 		os.chdir("..")
 
 client = Client(identifier,host,port)
+print("Client gestartet.")
+print("Bitte geben Sie das Passwort für die Kommunikation zum Server ein")
+j = getpass.getpass()
+password = j
 while True:
 	i = input(">")
 	if(i == "register"):
@@ -145,6 +167,8 @@ while True:
 		print("heartbeat. answer: ",client.heartbeat())
 	elif(i == "ask"):
 		print("asking. answer: ",client.ask())
+	elif(i == "suicide"):
+		print("commiting suicide. Answer:", client.suicide())
 	elif(i == "quit"):
 		sys.exit()
 	

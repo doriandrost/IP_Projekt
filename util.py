@@ -1,16 +1,21 @@
 import hashlib
 
 def DicToString(dic):
+	"""
+	Converts a Dicitionary to a String
+	"""
 	res = ""
 	for key in dic:
 		res += key
 		res += "$"
 		res += dic[key]
 		res += "|"
-	print(res)
 	return res[:-1] if res[-1] == "|" else res
 
 def StringToDic(string):
+	"""
+	Guess what: Converts a String to a Dictionary
+	"""
 	res = {}
 	for entry in string.split("|"):
 		key,val = entry.split("$")[0], entry.split("$")[1]
@@ -18,7 +23,10 @@ def StringToDic(string):
 	return res
 
 def Hash(string):
-	#return hashlib.md5(bytes(string,"utf-8")).hexdigest()	#seems to be indeterministic
+	"""
+	Calculates a hash for a given string for the Prüfsumme.
+	This hashfunction is just made up. One could implement any hash function at this place.
+	"""
 	fold = [1,3,6,2,7,9,4,2,7,9]
 	exps = [2,3,2,4,3,1,1,2,3,1,4]
 	s = 0
@@ -26,15 +34,12 @@ def Hash(string):
 		s += (fold[i % len(fold)] * ord(f))**exps[i % len(exps)]
 	return str(s)[:64]
 
-def KryptoHash(string):
-	fold = [1,3,6,2,7,9,4,2,7,9]
-	exps = [2,3,2,4,3,1,1,2,3,1,4]
-	s = 0
-	for i,f in enumerate(string):
-		s += (fold[i % len(fold)] * ord(f))**exps[i % len(exps)]
-	return str(s)[:64]
 
 def encrypt_once(text,password):
+	"""
+	encrypts the given text with the given password with a columntransposition
+
+	"""
 	b = len(password)
 	while(len(text) % b != 0):	#padding
 		text += "X"
@@ -50,6 +55,12 @@ def encrypt_once(text,password):
 	return ret
 
 def decrypt_once(text,password,cut = False):
+	"""
+	Decrypts the given ciphertext with the password using a columntransposition.
+	The parametre cut defines, whether the padding Xs at the end should be cut off.
+	If the return value of this is the encrypted string, one should cut them off.
+	If however the value should be decrypted once more, one should not.
+	"""
 	b = len(password)
 	width = len(text) // b
 	sortedpw = sorted(password)
@@ -78,12 +89,19 @@ def decrypt_once(text,password,cut = False):
 
 
 def encrypt(text,password):
+	"""
+	encrypts the given text with the password as a "Doppelwürfel"
+	The "Doppelwürfel" is still undecryptable.
+	"""
 	p1,p2 = password[:len(password)//2],password[len(password)//2:]
 	c = encrypt_once(text,p1)
 	cc = encrypt_once(c,p2)
 	return cc
 
 def decrypt(text,password):
+	"""
+	decrypts the given ciphertext with the password as a "Doppelwürfel"
+	"""
 	p1,p2 = password[:len(password)//2],password[len(password)//2:]
 	d = decrypt_once(text,p2,cut = False)
 	dd = decrypt_once(d,p1,cut=True)
