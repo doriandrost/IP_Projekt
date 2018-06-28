@@ -11,7 +11,7 @@ host = "localhost"
 port = 5026
 EOT = "EOT"
 
-secure,password = True,"fisch"
+secure,password = True,"fischkopf"
 
 
 

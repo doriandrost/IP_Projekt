@@ -34,7 +34,7 @@ def KryptoHash(string):
 		s += (fold[i % len(fold)] * ord(f))**exps[i % len(exps)]
 	return str(s)[:64]
 
-def encrypt(text,password):
+def encrypt_once(text,password):
 	b = len(password)
 	while(len(text) % b != 0):	#padding
 		text += "X"
@@ -49,7 +49,7 @@ def encrypt(text,password):
 	ret = "".join(list(map(lambda z : "".join(z[1]),orderedcols)))
 	return ret
 
-def decrypt(text,password):
+def decrypt_once(text,password,cut = False):
 	b = len(password)
 	width = len(text) // b
 	sortedpw = sorted(password)
@@ -57,7 +57,6 @@ def decrypt(text,password):
 	for i in range(0,width*(len(text) // width),width):
 		columns.append(text[i:i+width])
 	columns = list(zip(sortedpw,columns))
-	print(columns)
 	reorderedcols = list()
 	for letter in password:
 		matchingcol = list()
@@ -68,22 +67,32 @@ def decrypt(text,password):
 				break
 		reorderedcols.append(matchingcol)
 	lines = list()
-	print(reorderedcols)
 	for i in range(width):
 		l = "".join(list(map(lambda z : z[1][i],reorderedcols)))
 		lines.append(l)
 	lines = "".join(lines)
-	while lines[-1] == "X":
-		lines = lines[:-1]
+	if(cut):
+		while lines[-1] == "X":
+			lines = lines[:-1]
 	return lines
 
 
+def encrypt(text,password):
+	p1,p2 = password[:len(password)//2],password[len(password)//2:]
+	c = encrypt_once(text,p1)
+	cc = encrypt_once(c,p2)
+	return cc
+
+def decrypt(text,password):
+	p1,p2 = password[:len(password)//2],password[len(password)//2:]
+	d = decrypt_once(text,p2,cut = False)
+	dd = decrypt_once(d,p1,cut=True)
+	return dd
 
 
-
-text = "SomeTextAndSomeMoreTextAndEvenMore"
-password = "fisch"
-c = encrypt(text,password)
-print(c)
-d = decrypt(c,password)
-print(d)
+#text = "Einst, um eine Mittnach, graulich, da ich trübe sann und traurig..."
+#print("......")
+#a = encrypt(text,"fischkopf")
+#print(a,len(a))
+#b = decrypt(a,"fischkopf")
+#print(b,len(b))

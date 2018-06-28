@@ -7,7 +7,7 @@ import uuid
 import os
 import re
 
-secure,password = True,"fisch"
+secure,password = True,"fischkopf"
 
 host = "localhost"
 port = 5026
