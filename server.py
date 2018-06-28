@@ -8,8 +8,10 @@ from zipfile import ZipFile
 
 
 host = "localhost"
-port = 5020
+port = 5026
 EOT = "EOT"
+
+secure,password = True,"fisch"
 
 
 
@@ -99,6 +101,9 @@ class Server():
 		TYPE 1 : heartbeat
 		TYPE 2 : question for packages
 		"""
+		if(secure):
+			St = util.decrypt(St,password)
+		print("ST",St)
 		incom = util.StringToDic(St)
 		if(incom["TYPE"] == "0"):#0 register
 			if(incom["ID"] not in self.All_Clients):
@@ -136,7 +141,10 @@ class Server():
 		packages_dic.update({"TIMESTAMP":str(time.time())})
 		packages_dic.update({"NAME":name})
 		packages_dic.update({"CHECKSUM":str(util.Hash(util.DicToString(packages_dic)))})
-		return util.DicToString(packages_dic)
+		ret = util.DicToString(packages_dic)
+		if(secure):
+			ret = util.encrypt(ret,password)
+		return ret
 
 	def searchForUpdates(self, clientDic):
 		"""

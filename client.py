@@ -7,12 +7,13 @@ import uuid
 import os
 import re
 
+secure,password = True,"fisch"
 
 host = "localhost"
-port = 5020
+port = 5026
 EOT = "EOT"
 
-identifier = sys.argv[1] if len(sys.argv) > 1 else 0
+identifier = sys.argv[1] if len(sys.argv) > 1 else uuid.getnode()
 
 class Client():
 
@@ -33,9 +34,11 @@ class Client():
 			mac = identifier
 		else:
 			mac = str(uuid.getnode())
-		myInfo = {"TYPE":"0","ID":mac,"CPU":cpu,"SYSTEM":system,"VERSION":version}
+		myInfo = {"TYPE":"0","ID":str(mac),"CPU":cpu,"SYSTEM":system,"VERSION":version}
 		#myInfo = {"TYPE":"0","ID":identifier,"CPU":"SomeCPU","GPU":"SomeGPU","RAM":"1000"}
 		infoString = util.DicToString(myInfo)
+		if(secure):
+			infoString = util.encrypt(infoString,password)
 		print("Client: Sending my info: ",infoString)
 		s.send(bytes(infoString,"utf-8"))
 		print("Sending", EOT)
@@ -58,8 +61,11 @@ class Client():
 		"""
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
 		s.connect((host,port))
-		heartbeat = {"TYPE":"1","ID":identifier}
+		heartbeat = {"TYPE":"1","ID":str(identifier)}
+		print(heartbeat)
 		heartbeatString = util.DicToString(heartbeat)
+		if(secure):
+			heartbeatString = util.encrypt(heartbeatString,password)
 		print("Sending a message that is", heartbeatString)
 		s.send(bytes(heartbeatString,"utf-8"))
 		print("Sending", EOT)
@@ -79,6 +85,8 @@ class Client():
 		s.connect((host,port))
 		question = {"ID":identifier,"TYPE":"2"}
 		questionAsString = util.DicToString(question)
+		if(secure):
+			questionAsString = util.encrypt(questionAsString,password)
 		print("sending ",questionAsString)
 		s.send(bytes(questionAsString,"utf-8"))
 		print("sending ",EOT)
@@ -92,6 +100,8 @@ class Client():
 				if(EOT in inp):
 					break
 			d = inp[:-len(EOT)]
+			if(secure):
+				d = util.decrypt(d,password)
 			self.installPackages(d)
 		s.close()
 		return answer
