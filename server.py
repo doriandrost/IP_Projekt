@@ -8,7 +8,7 @@ from zipfile import ZipFile
 
 
 host = "localhost"
-port = 5026
+port = 5019
 EOT = "EOT"
 
 secure,password = True,"fischkopf"
@@ -39,7 +39,9 @@ class Server():
 		self.startTimerDeamon()
 		self.startListeningThread()
 
-		self.Packages.append({"Name":"Ein Package", "URL":"www.google.com", "Version":"42"})
+		self.UpdateRules = {"One_Package":"42","Another_Package":"1.5"}
+
+#		#self.Packages.append({"Name":"Ein Package", "URL":"www.google.com", "Version":"42"})
 
 	def startListeningThread(self):
 		"""
@@ -112,6 +114,10 @@ class Server():
 			if(incom["ID"] not in self.All_Clients):
 				del incom["TYPE"]	#we don't want to store that information in the dic
 				incom.update({"TIMESTAMP":time.time()})
+				p = {}
+				for k in self.UpdateRules:
+					p.update({k:"0"})
+				incom.update({"PACKAGE_VERSIONS":p})
 				self.All_Clients.update({incom["ID"]:incom})
 				print("Server: sucesfully registered a new Client with id",incom["ID"])
 				self.send("0")
@@ -156,8 +162,12 @@ class Server():
 		"""
 		searches for whether there are packageupdates available for the client specified in clientDic. 
 		"""
-		pack = self.readInPackage("One_Package.zip")
-		return pack
+		for package in self.UpdateRules:
+			if float(self.UpdateRules[package]) > float(self.All_Clients[clientDic["ID"]]["PACKAGE_VERSIONS"][package]):
+				pack = self.readInPackage(str(package)+".zip")
+				self.All_Clients[clientDic["ID"]]["PACKAGE_VERSIONS"][package] = self.UpdateRules[package]
+				return pack
+		return 1
 
 	def startTimerDeamon(self):
 		"""

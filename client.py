@@ -11,7 +11,7 @@ import getpass
 secure,password = True,"fischkopf"
 
 host = "localhost"
-port = 5026
+port = 5019
 EOT = "EOT"
 
 identifier = sys.argv[1] if len(sys.argv) > 1 else uuid.getnode()
@@ -36,7 +36,6 @@ class Client():
 		else:
 			mac = str(uuid.getnode())
 		myInfo = {"TYPE":"0","ID":str(mac),"CPU":cpu,"SYSTEM":system,"VERSION":version}
-		#myInfo = {"TYPE":"0","ID":identifier,"CPU":"SomeCPU","GPU":"SomeGPU","RAM":"1000"}
 		infoString = util.DicToString(myInfo)
 		if(secure):
 			infoString = util.encrypt(infoString,password)
