@@ -8,13 +8,13 @@ import os
 import re
 import getpass
 
-secure,password = True,"fischkopf"
+secure,password = sys.argv[1] == str(1),"fischkopf"
 
 host = "localhost"
-port = 5019
+port = 5024
 EOT = "EOT"
 
-identifier = sys.argv[1] if len(sys.argv) > 1 else uuid.getnode()
+identifier = uuid.getnode() #sys.argv[1] if len(sys.argv) > 1 else uuid.getnode()
 
 class Client():
 
@@ -64,9 +64,11 @@ class Client():
 		heartbeat = {"TYPE":"1","ID":str(identifier)}
 		#print(heartbeat)
 		heartbeatString = util.DicToString(heartbeat)
+		#print(heartbeatString)
 		if(secure):
 			heartbeatString = util.encrypt(heartbeatString,password)
 		#print("Sending a message that is", heartbeatString)
+		#print(util.decrypt(heartbeatString,password))
 		s.send(bytes(heartbeatString,"utf-8"))
 		#print("Sending", EOT)
 		s.send(bytes(EOT,"utf-8"))
@@ -100,7 +102,7 @@ class Client():
 		"""
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
 		s.connect((host,port))
-		question = {"ID":identifier,"TYPE":"2"}
+		question = {"ID":str(identifier),"TYPE":"2"}
 		questionAsString = util.DicToString(question)
 		if(secure):
 			questionAsString = util.encrypt(questionAsString,password)
@@ -155,9 +157,10 @@ class Client():
 
 client = Client(identifier,host,port)
 print("Client gestartet.")
-print("Bitte geben Sie das Passwort für die Kommunikation zum Server ein")
-j = getpass.getpass()
-password = j
+if(secure):
+	print("Bitte geben Sie das Passwort für die Kommunikation zum Server ein")
+	j = getpass.getpass()
+	password = j
 while True:
 	i = input(">")
 	if(i == "register"):

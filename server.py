@@ -5,16 +5,13 @@ import util
 from threading import Thread
 import sys
 from zipfile import ZipFile
-
+import getpass
 
 host = "localhost"
-port = 5019
+port = 5024
 EOT = "EOT"
 
-secure,password = True,"fischkopf"
-
-
-
+secure,password = sys.argv[1] == str(1),"fischkopf"
 
 class Server():
 
@@ -206,7 +203,10 @@ class Server():
 
 Serv = Server()
 
-
+if(secure):
+	print("Bitte definieren Sie das Masterpassword des Servers:")
+	j = getpass.getpass()
+	password = j
 
 while True:
 	i = input(">")

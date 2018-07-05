@@ -1,0 +1,60 @@
+
+###USING THE SERVER###
+
+To start the Server make its file executeable and just execute it with
+	./server.py s
+	if s == 1 the secure mode is switched on.
+
+If the securemode is on, you will be asked to define the password for the server-client communication
+
+The server allows the following commands:
+	allclients 	prints a list of all clients ids that are registered on the server.
+	To get a clients info just type its id in the terminal.
+	remove i	removes the client with id i from the servers client list.
+	quit		shuts down the whole server.
+
+###USING THE CLIENT###
+
+To start the client make its file executable and just execuite it with
+	./client.py s
+	if s == 1 the secure mode is switched on.
+
+If the securemode is on, you will be asked to type in the password to encrypt the communication with the server.
+
+The client alllows the following commands:
+	register	registers this client at the server. This has to be done before other commands are executed
+			(as one can not send a heartbeat for example, if one is not registered at all)
+	heartbeat	sends a heartbeat to the server to tell him one is still alive
+	ask		asks the server whether there are packages available for this client.
+			If so the packages are directly loaded and installed.
+	suicide		Deregisteres this client, i.e. tells the server to remove self from the servers client list.
+	quit		shuts down the whole client. 
+
+After executing the commands, the client will present to you the answer of the server, that is either 0 or 1.
+A 0 means everything went well. A 1 however is the signal, that something went wrong and the command was not executed.
+For example if you want to register a client, that is already registered, you will get a 1.
+
+
+####FEATURES#####
+
+Take note of the following additional features being implemented in the server:
+
+CHECKSUM
+Sending a package, the server creates and sends a checksum with it. After the client has recieved the data,
+he will compute the checksum by himself in order to check, whether both sums are equal.
+If not, there was most likely a loss of data in the connection. Therefore the client should ask for the package again.
+
+SECUREMODE
+One can switch on the secure mode with the first argument at start. If the secure mode is on, the data sent between 
+server and client will be encrypted with a "Doppelwürfel". The client then has to enter a password at start.
+
+TIME-DEAMON
+There exists a deamon thread at the server, that wakes up every couple of seconds and checks, whether there are clients,
+who's timestamp is outdated (i.e. the difference between the timestamp and that time is greater then a set thresehold).
+If so, it removes the clients. 
+
+VERSIONING
+When asked for packages, the server looks up, whether that client already has the latest package versions.
+If not he sends them a package and notes, that the client now has that version. (However he does not concern,
+that the installation of the package may fail). 
+

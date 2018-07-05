@@ -2,7 +2,9 @@ import hashlib
 
 def DicToString(dic):
 	"""
-	Converts a Dicitionary to a String
+	Converts a Dicitionary to a String.
+	This is done throuhg seperating the entries and its values with seperators such as
+	"$" and "|". 
 	"""
 	res = ""
 	for key in dic:
@@ -93,24 +95,27 @@ def encrypt(text,password):
 	encrypts the given text with the password as a "Doppelwürfel"
 	The "Doppelwürfel" is still undecryptable.
 	"""
-	p1,p2 = password[:len(password)//2],password[len(password)//2:]
-	c = encrypt_once(text,p1)
-	cc = encrypt_once(c,p2)
+	#p1,p2 = password[:len(password)//2],password[len(password)//2:]
+	#print(p1,p2)
+	c = encrypt_once(text,password)
+	cc = encrypt_once(c,password)
 	return cc
 
 def decrypt(text,password):
 	"""
 	decrypts the given ciphertext with the password as a "Doppelwürfel"
 	"""
-	p1,p2 = password[:len(password)//2],password[len(password)//2:]
-	d = decrypt_once(text,p2,cut = False)
-	dd = decrypt_once(d,p1,cut=True)
+	#p1,p2 = password[:len(password)//2],password[len(password)//2:]
+	#print(p1,p2)
+	d = decrypt_once(text,password,cut = False)
+	dd = decrypt_once(d,password,cut=True)
 	return dd
 
 
-#text = "Einst, um eine Mittnach, graulich, da ich trübe sann und traurig..."
+#text = "ID$35774998974437|TYPE$1"
+#print(text,len(text))
 #print("......")
-#a = encrypt(text,"fischkopf")
+#a = encrypt(text,"schwammkopf")
 #print(a,len(a))
-#b = decrypt(a,"fischkopf")
+#b = decrypt(a,"schwammkopf")
 #print(b,len(b))
