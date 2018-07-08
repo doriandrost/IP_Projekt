@@ -8,7 +8,7 @@ from zipfile import ZipFile
 import getpass
 
 host = "localhost"
-port = 5024
+port = 5026
 EOT = "EOT"
 
 secure,password = sys.argv[1] == str(1),"fischkopf"
@@ -106,7 +106,13 @@ class Server():
 		"""
 		if(secure):
 			St = util.decrypt(St,password)
-		incom = util.StringToDic(St)
+		try:
+			incom = util.StringToDic(St)
+		except:
+			print("Something went wrong. The password may have been in correct")
+			self.send("1")
+			return
+#		print(incom)
 		if(incom["TYPE"] == "0"):#0 register
 			if(incom["ID"] not in self.All_Clients):
 				del incom["TYPE"]	#we don't want to store that information in the dic

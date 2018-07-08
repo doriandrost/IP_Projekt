@@ -11,7 +11,7 @@ import getpass
 secure,password = sys.argv[1] == str(1),"fischkopf"
 
 host = "localhost"
-port = 5024
+port = 5026
 EOT = "EOT"
 
 identifier = uuid.getnode() #sys.argv[1] if len(sys.argv) > 1 else uuid.getnode()
@@ -84,10 +84,13 @@ class Client():
 		"""
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
 		s.connect((host,port))
-		query = {"ID":identifier,"TYPE":"3"}
+		query = {"ID":str(identifier),"TYPE":"3"}
+		print(query)
 		queryAsString = util.DicToString(query)
+		print(queryAsString)
 		if(secure):
 			queryAsString = util.encrypt(queryAsString,password)
+		print("sending",queryAsString)
 		s.send(bytes(queryAsString,"utf-8"))
 		#print("sending",queryAsString)
 		s.send(bytes(EOT,"utf-8"))
