@@ -12,7 +12,7 @@ host = str(sys.argv[1])#"localhost"
 port = int(sys.argv[2])#5026
 EOT = "EOT"
 
-secure,password = sys.argv[1] == str(1),"fischkopf"
+secure,password = sys.argv[3] == str(1),"fischkopf"
 
 class Server():
 

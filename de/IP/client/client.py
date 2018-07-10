@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import socket
-import util
+from de.IP.util import util
 import sys
 import platform
 import uuid
@@ -8,10 +8,10 @@ import os
 import re
 import getpass
 
-secure,password = sys.argv[1] == str(1),"fischkopf"
+secure,password = sys.argv[3] == str(1),"fischkopf"
 
-host = "localhost"
-port = 5026
+host = str(sys.argv[1])#"localhost"
+port = int(sys.argv[2])#5026
 EOT = "EOT"
 
 identifier = uuid.getnode() #sys.argv[1] if len(sys.argv) > 1 else uuid.getnode()
@@ -85,12 +85,12 @@ class Client():
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
 		s.connect((host,port))
 		query = {"ID":str(identifier),"TYPE":"3"}
-		print(query)
+#		print(query)
 		queryAsString = util.DicToString(query)
-		print(queryAsString)
+#		print(queryAsString)
 		if(secure):
 			queryAsString = util.encrypt(queryAsString,password)
-		print("sending",queryAsString)
+#		print("sending",queryAsString)
 		s.send(bytes(queryAsString,"utf-8"))
 		#print("sending",queryAsString)
 		s.send(bytes(EOT,"utf-8"))
